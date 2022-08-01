@@ -1,5 +1,6 @@
 package io.javabrains.moviecatalogservice.resource;
 
+import com.netflix.discovery.DiscoveryClient;
 import io.javabrains.moviecatalogservice.models.CatalogItem;
 import io.javabrains.moviecatalogservice.models.Movie;
 import io.javabrains.moviecatalogservice.models.Rating;
@@ -25,14 +26,17 @@ public class MovieCatalogResource {
     @Autowired
     private WebClient.Builder webClientBuilder;
 
+    @Autowired
+    private DiscoveryClient discoveryClient;
+
     @RequestMapping("/{userId}")
     public List<CatalogItem> getCatalog(@PathVariable String userId)
     {
 
-        UserRating ratings = restTemplate.getForObject("http://localhost:8083/ratingsdata/users/"+ userId, UserRating.class);
+        UserRating ratings = restTemplate.getForObject("http://RATING-DATA-SERVICE/ratingsdata/users/"+ userId, UserRating.class);
 
         return ratings.getUserRating().stream().map(rating -> {
-                    Movie movie = restTemplate.getForObject("http://localhost:8082/movies/"+ rating.getMovieId(), Movie.class);
+                    Movie movie = restTemplate.getForObject("http://MOVIE-INFO-SERVICE/movies/"+ rating.getMovieId(), Movie.class);
                     return new CatalogItem( movie.getName() , "test", rating.getRating());
                 })
                 .collect(Collectors.toList());
